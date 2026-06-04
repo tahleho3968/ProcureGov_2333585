@@ -132,25 +132,25 @@ public class BidDAOImpl implements BidDAO {
     @Override
     public boolean updateBid(Bid bid) {
         String sql = "UPDATE bids SET bid_amount=?, technical_compliance=?, delivery_timeline=?, " +
-                     "supporting_doc_path=? WHERE bid_id=?";
-        
+                     "supporting_doc_path=?, is_winning_bid=? WHERE bid_id=?";
+    
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+        
             pstmt.setBigDecimal(1, bid.getBidAmount());
             pstmt.setString(2, bid.getTechnicalCompliance());
             pstmt.setInt(3, bid.getDeliveryTimeline());
             pstmt.setString(4, bid.getSupportingDocPath());
-            pstmt.setInt(5, bid.getBidId());
-            
+            pstmt.setBoolean(5, bid.isWinningBid());
+            pstmt.setInt(6, bid.getBidId());
+        
             return pstmt.executeUpdate() > 0;
-            
+        
         } catch (SQLException e) {
             logger.severe("Error updating bid: " + e.getMessage());
             return false;
         }
-    }
-    
+    }    
     @Override
     public boolean deleteBid(int bidId) {
         String sql = "DELETE FROM bids WHERE bid_id = ?";

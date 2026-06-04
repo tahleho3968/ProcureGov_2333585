@@ -198,67 +198,70 @@
             </c:otherwise>
         </c:choose>
         
-        <!-- My Bids Section -->
-        <h2 class="section-title">My Submitted Bids</h2>
-        <c:choose>
-            <c:when test="${empty myBids}">
-                <p>You haven't submitted any bids yet.</p>
-            </c:when>
-            <c:otherwise>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Reference</th>
-                            <th>Tender Title</th>
-                            <th>Bid Amount (M)</th>
-                            <th>Delivery Timeline (Days)</th>
-                            <th>Submission Date</th>
-                            <th>Tender Status</th>
-                            <th>Bid Status</th>
-                            <th>Award Notice</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <c:forEach items="${myBids}" var="bid">
-                            <%
-                                Bid bidItem = (Bid) pageContext.getAttribute("bid");
-                                Tender tender = tenderDAO.findById(bidItem.getTenderId());
-                                pageContext.setAttribute("tenderStatus", tender != null ? tender.getStatus() : "");
-                                pageContext.setAttribute("isWinning", bidItem.isWinningBid());
-                            %>
-                            <tr>
-                                <td>${tender.referenceNumber}</td>
-                                <td>${tender.title}</td>
-                                <td><fmt:formatNumber value="${bid.bidAmount}" type="number" maxFractionDigits="0"/></td>
-                                <td>${bid.deliveryTimeline}</td>
-                                <td><fmt:formatDate value="${bid.submissionDatetime}" pattern="yyyy-MM-dd HH:mm"/></td>
-                                <td>
-                                    <span class="status-badge status-${tenderStatus}">${tenderStatus}</span>
-                                </td>
-                                <td>
-                                    <c:choose>
-                                        <c:when test="${tenderStatus == 'AWARDED' and isWinning}">
-                                            <span class="bid-status bid-winning">WON</span>
-                                        </c:when>
-                                        <c:when test="${tenderStatus == 'AWARDED' and not isWinning}">
-                                            <span class="bid-status bid-lost">NOT WON</span>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <span class="bid-status bid-pending">PENDING</span>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </td>
-                                <td>
-                                    <c:if test="${tenderStatus == 'AWARDED'}">
-                                        <a href="${pageContext.request.contextPath}/supplier/awardNotice?tenderId=${tender.tenderId}" class="btn btn-small">View Notice</a>
-                                    </c:if>
-                                </td>
-                            </tr>
-                        </c:forEach>
-                    </tbody>
-                </table>
-            </c:otherwise>
-        </c:choose>
+	<!-- My Bids Section -->
+	<h2 class="section-title">My Submitted Bids</h2>
+	<c:choose>
+	    <c:when test="${empty myBids}">
+		<p>You haven't submitted any bids yet.</p>
+	    </c:when>
+	    <c:otherwise>
+		<table>
+		    <thead>
+		        <tr>
+		            <th>Reference</th>
+		            <th>Tender Title</th>
+		            <th>Bid Amount (M)</th>
+		            <th>Delivery Timeline (Days)</th>
+		            <th>Submission Date</th>
+		            <th>Tender Status</th>
+		            <th>Bid Status</th>
+		            <th>Award Notice</th>
+		        </tr>
+		    </thead>
+		    <tbody>
+		        <c:forEach items="${myBids}" var="bid">
+		            <%
+		                Bid bidItem = (Bid) pageContext.getAttribute("bid");
+		                Tender tender = tenderDAO.findById(bidItem.getTenderId());
+		                pageContext.setAttribute("tenderStatus", tender != null ? tender.getStatus() : "");
+		                pageContext.setAttribute("isWinning", bidItem.isWinningBid());
+		                pageContext.setAttribute("tenderId", bidItem.getTenderId());
+		                pageContext.setAttribute("tenderRef", tender != null ? tender.getReferenceNumber() : "");
+		                pageContext.setAttribute("tenderTitle", tender != null ? tender.getTitle() : "");
+		            %>
+		            <tr>
+		                <td>${tenderRef}</td>
+		                <td>${tenderTitle}</td>
+		                <td><fmt:formatNumber value="${bid.bidAmount}" type="number" maxFractionDigits="0"/></td>
+		                <td>${bid.deliveryTimeline}</td>
+		                <td><fmt:formatDate value="${bid.submissionDatetime}" pattern="yyyy-MM-dd HH:mm"/></td>
+		                <td>
+		                    <span class="status-badge status-${tenderStatus}">${tenderStatus}</span>
+		                </td>
+		                <td>
+		                    <c:choose>
+		                        <c:when test="${tenderStatus == 'AWARDED' and isWinning}">
+		                            <span class="bid-status bid-winning">WON</span>
+		                        </c:when>
+		                        <c:when test="${tenderStatus == 'AWARDED' and not isWinning}">
+		                            <span class="bid-status bid-lost">NOT WON</span>
+		                        </c:when>
+		                        <c:otherwise>
+		                            <span class="bid-status bid-pending">PENDING</span>
+		                        </c:otherwise>
+		                    </c:choose>
+		                </td>
+		                <td>
+		                    <c:if test="${tenderStatus == 'AWARDED'}">
+		                        <a href="${pageContext.request.contextPath}/supplier/awardNotice?tenderId=${tenderId}" class="btn btn-small">View Notice</a>
+		                    </c:if>
+		                </td>
+		            </tr>
+		        </c:forEach>
+		    </tbody>
+		</table>
+	    </c:otherwise>
+	</c:choose>
     </div>
 </body>
 </html>

@@ -8,15 +8,21 @@ import com.procuregov.dao.TenderDAO;
 import com.procuregov.dao.TenderDAOImpl;
 import com.procuregov.dao.UserDAO;
 import com.procuregov.dao.UserDAOImpl;
+import com.procuregov.dao.AwardDAO;
+import com.procuregov.dao.AwardDAOImpl;
 import com.procuregov.model.Bid;
 import com.procuregov.model.Tender;
 import com.procuregov.model.User;
+import com.procuregov.model.Award;
 import com.procuregov.service.EmailService;
 import com.procuregov.util.SessionValidator;
+import com.procuregov.db.DatabaseConnection;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,6 +36,7 @@ public class AwardServlet extends HttpServlet {
     private TenderDAO tenderDAO;
     private UserDAO userDAO;
     private EvaluationDAO evaluationDAO;
+    private AwardDAO awardDAO;
     
     @Override
     public void init() {
@@ -37,6 +44,7 @@ public class AwardServlet extends HttpServlet {
         tenderDAO = new TenderDAOImpl();
         userDAO = new UserDAOImpl();
         evaluationDAO = new EvaluationDAOImpl();
+        awardDAO = new AwardDAOImpl();
     }
     
     @Override
@@ -55,13 +63,9 @@ public class AwardServlet extends HttpServlet {
             return;
         }
         
-        // Get all bids with their average scores
         List<Bid> bids = bidDAO.findBidsByTenderWithSupplierDetails(tenderId);
-        
-        // Calculate final scores for ranking
         List<Map<String, Object>> rankedBids = new ArrayList<>();
         
-        // Calculate global lowest bid and shortest timeline
         BigDecimal lowestBid = bids.stream()
                 .map(Bid::getBidAmount)
                 .min(BigDecimal::compareTo)
@@ -80,7 +84,6 @@ public class AwardServlet extends HttpServlet {
             rankedBid.put("bidAmount", bid.getBidAmount());
             rankedBid.put("deliveryTimeline", bid.getDeliveryTimeline());
             
-            // Calculate scores
             double priceScore = lowestBid.divide(bid.getBidAmount(), 4, RoundingMode.HALF_UP)
                     .multiply(BigDecimal.valueOf(100)).doubleValue();
             double deliveryScore = ((double) shortestTimeline / bid.getDeliveryTimeline()) * 100;
@@ -91,7 +94,6 @@ public class AwardServlet extends HttpServlet {
             rankedBids.add(rankedBid);
         }
         
-        // Sort by final score descending
         rankedBids.sort((a, b) -> Double.compare((Double) b.get("finalScore"), (Double) a.get("finalScore")));
         
         request.setAttribute("tender", tender);
@@ -118,9 +120,28 @@ public class AwardServlet extends HttpServlet {
             Bid winningBid = bidDAO.findById(winningBidId);
             User winningSupplier = userDAO.findById(winningBid.getSupplierId());
             
-            // Update winning bid flag
-            winningBid.setWinningBid(true);
-            bidDAO.updateBid(winningBid);
+
+            List<Bid> allBidsForUpdate = bidDAO.findBidsByTender(tenderId);
+            for (Bid bid : allBidsForUpdate) {
+                boolean isWinning = (bid.getBidId() == winningBidId);
+                String updateSql = "UPDATE bids SET is_winning_bid = ? WHERE bid_id = ?";
+                try (Connection conn = DatabaseConnection.getConnection();
+                     PreparedStatement pstmt = conn.prepareStatement(updateSql)) {
+                    pstmt.setBoolean(1, isWinning);
+                    pstmt.setInt(2, bid.getBidId());
+                    pstmt.executeUpdate();
+                    System.out.println("Updated bid_id " + bid.getBidId() + " is_winning_bid = " + isWinning);
+                }
+            }
+            
+            // Save award record
+            Award award = new Award();
+            award.setTenderId(tenderId);
+            award.setWinningBidId(winningBidId);
+            award.setAwardedValue(awardedValue);
+            award.setJustification(justification);
+            award.setAwardedBy(officer.getUserId());
+            awardDAO.saveAward(award);
             
             // Update tender status to AWARDED
             tenderDAO.updateTenderStatus(tenderId, "AWARDED");

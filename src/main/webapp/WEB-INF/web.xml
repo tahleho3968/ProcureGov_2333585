@@ -149,4 +149,14 @@
         <url-pattern>/officer/award</url-pattern>
     </servlet-mapping>
 
+    <!-- Award Notice Servlet -->
+    <servlet>
+        <servlet-name>AwardNoticeServlet</servlet-name>
+        <servlet-class>com.procuregov.controller.AwardNoticeServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AwardNoticeServlet</servlet-name>
+        <url-pattern>/supplier/awardNotice</url-pattern>
+    </servlet-mapping>
+
 </web-app>
