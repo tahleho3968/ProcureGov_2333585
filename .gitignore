@@ -1,0 +1,34 @@
+# Compiled files
+*.class
+target/
+*.war
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# Logs
+*.log
+email_log.txt
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Database
+*.sql.bak
+
+# Uploaded files (keep structure but not content)
+uploads/
+
+# Tomcat
+tomcat/
+
+# Temporary files
+*.tmp
+*.swp
+*~
