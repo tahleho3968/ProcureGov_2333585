@@ -186,7 +186,6 @@ http://localhost:8080/ProcureGov_2333585/
 ![Award Results](https://raw.githubusercontent.com/tahleho3968/ProcureGov_2333585/main/screenshots/award-results-supplier.png)
 *Show Email recieved*
 
-> **Note:** Screenshots are located in the `screenshots/` folder. Replace the URLs with actual image links after uploading to GitHub.
 
 ## 🏗️ Technical Architecture
 
